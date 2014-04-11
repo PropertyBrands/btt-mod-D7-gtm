@@ -39,10 +39,6 @@ function gtm_theme() {
       'variables' => array('gtm_id' => NULL),
       'file' => 'gtm.theme.inc'
     ),
-    'gtm_container_block' => array(
-      'render element' => 'element',
-      'file' => 'gtm.theme.inc'
-    ),
     'gtm_datalayer' => array(
       'variables' => array('dataLayer' => NULL),
       'file' => 'gtm.theme.inc'
@@ -51,32 +47,30 @@ function gtm_theme() {
 }
 
 /**
- * Implements hook_block_info().
+ * Implements hook_page_alter().
+ *
+ * Adds a post_render callback and loads the include file.
+ *
+ * @see drupal_render_page()
  */
-function gtm_block_info() {
-  $blocks = array();
-
-  $blocks['gtm_container_block'] = array(
-    'info' => t('Google Tag Manager Container'),
-    'cache' => DRUPAL_CACHE_PER_PAGE,
-  );
-
-  return $blocks;
-}
-
-/**
- * Implements hook_block_view().
- */
-function gtm_block_view($delta = '') {
-  $block = array();
-
-  switch($delta) {
-    case 'gtm_container_block':
-      $block['subject'] = '';
-      $block['content'] = array('#theme' => 'gtm_container');
-      break;
+function gtm_page_alter(&$page) {
+  if (!gtm_should_track()) {
+    return;
   }
-  return $block;
+
+  // Call sequence:
+  // - drupal_render_page()
+  //   - hook_page_alter()
+  //   - drupal_render()
+  // - drupal_render()
+  //   - callbacks in $elements['#theme_wrappers']
+  //     - hook_preprocess_html(): 'html' is the wrapper for page
+  //     - templates may add tags after body tag
+  //   - callbacks in $elements['#post_render']
+  //     - gtm_page_process(): callback set here
+
+  // Add callback routine.
+  $page['#post_render'][] = 'gtm_page_process';
 }
 
 /**
@@ -90,6 +84,14 @@ function gtm_context_plugins() {
       'path' => drupal_get_path('module', 'gtm') .'/plugins',
       'file' => 'context_reaction_data_layer.inc',
       'class' => 'context_reaction_data_layer',
+      'parent' => 'context_reaction',
+    ),
+  );
+  $plugins['context_reaction_gtm_container'] = array(
+    'handler' => array(
+      'path' => drupal_get_path('module', 'gtm') .'/plugins',
+      'file' => 'context_reaction_gtm_container.inc',
+      'class' => 'context_reaction_gtm_container',
       'parent' => 'context_reaction',
     ),
   );
@@ -108,6 +110,10 @@ function gtm_context_registry() {
         'title' => t('GTM dataLayer'),
         'plugin' => 'context_reaction_data_layer',
       ),
+      'gtm_container' => array(
+        'title' => t('GTM Container'),
+        'plugin' => 'context_reaction_gtm_container',
+      )
     ),
   );
 }
@@ -142,4 +148,23 @@ function gtm_gtm_data_layer() {
  if($plugin = context_get_plugin('reaction', 'data_layer')) {
   return $plugin->execute();
  }
+ return FALSE;
+}
+
+
+/**
+ * Implements callback_post_render().
+ *
+ * Inserts JavaScript snippet immediately following the opening body tag.
+ *
+ * @see gtm_page_alter()
+ * @see drupal_render()
+ */
+function gtm_page_process(&$children, $elements) {
+  // Insert snippet after the opening body tag.
+  if($plugin = context_get_plugin('reaction', 'gtm_container')) {
+    $script = $plugin->execute();
+    $children = preg_replace('@<body[^>]*>@', '$0' . $script, $children, 1);
+  }
+  return $children;
 }
