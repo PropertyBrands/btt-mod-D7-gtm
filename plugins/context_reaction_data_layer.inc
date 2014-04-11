@@ -10,8 +10,8 @@ class context_reaction_data_layer extends context_reaction {
     $values = $this->fetch_from_context($context);
     $form = array(
       'gtm_data_layer' => array(
-        '#title' => t('DataLayer JS Object'),
-        '#description' => t('Enter properly formed JSON.'),
+        '#title' => t('dataLayer JS Object'),
+        '#description' => t('Enter properly formed JSON. Brackets {} are required.'),
         '#type' => 'textarea',
         '#size' => 64,
         '#rows' => 10,
@@ -25,14 +25,15 @@ class context_reaction_data_layer extends context_reaction {
    * Print our object.
    */
   function execute() {
+    $layers = '';
+    $dl = variable_get('datalayer');
     foreach (context_active_contexts() as $k => $v) {
       if (!empty($v->reactions[$this->plugin]['gtm_data_layer'])) {
-        $build = array(
-          '#theme' => 'gtm_datalayer',
-          '#dataLayer' => $v->reactions[$this->plugin]['gtm_data_layer'],
-        );
-        return drupal_render($build);
+        $json = $v->reactions[$this->plugin]['gtm_data_layer'];
+        $script = "{$dl}.push({$json});";
+        $layers .= $script;
       }
     }
+    return $layers;
   }
 }

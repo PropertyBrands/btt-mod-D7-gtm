@@ -5,14 +5,14 @@
  */
 function theme_gtm_container(&$variables) {
   if($variables['track'] == TRUE) {
-    $layers = '';
-    foreach(module_invoke_all('gtm_data_layer') as $dl) {
+    $init = '<script type="text/javascript">var '. $variables['data_layer'] .' = [];</script>';
+    $push = '';
+    foreach(module_invoke_all('gtm_data_layer') as $data_layer_push) {
       $layer = array(
-        '#prefix' => '<script type="text/javascript">',
-        '#markup' => $dl,
-        '#suffix' => '</script>',
+        '#theme' => 'gtm_datalayer',
+        '#dataLayer' => $data_layer_push,
       );
-      $layers .= drupal_render($layer);
+      $push .= drupal_render($layer);
     }
     // Build script tags.
     $noscript = <<<EOS
@@ -22,7 +22,6 @@ EOS;
     $script = <<<EOS
 <script type="text/javascript">
 (function(w,d,s,l,i){
-
   w[l]=w[l]||[];
   w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
   var f=d.getElementsByTagName(s)[0];
@@ -32,13 +31,13 @@ EOS;
   j.type='text/javascript';
   j.async=true;
   f.parentNode.insertBefore(j,f);
-
 })(window,document,'script','{$variables['data_layer']}','{$variables['id']}');
 </script>
 EOS;
     $script = <<<EOS
 <!-- Google Tag Manager -->
-$layers
+$init
+$push
 $noscript
 $script
 <!-- End Google Tag Manager -->
@@ -64,7 +63,15 @@ function gtm_preprocess_gtm_container(&$variables) {
  */
 function theme_gtm_datalayer(&$variables) {
   if(gtm_should_track()) {
-    return $variables['dataLayer'];
+    $build = array(
+      '#theme' => 'html_tag',
+      '#tag' => 'script',
+      '#attributes' => array(
+        'type' => 'text/javascript'
+      ),
+      '#value' => $variables['dataLayer'],
+    );
+    return drupal_render($build);
   }
   return FALSE;
 }
