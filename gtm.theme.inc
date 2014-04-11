@@ -14,16 +14,36 @@ function theme_gtm_container(&$variables) {
       );
       $layers .= drupal_render($layer);
     }
-    return $layers.'
-    <!-- Google Tag Manager -->
-<noscript><iframe src="//www.googletagmanager.com/ns.html?'. $variables['id'] .'"
-height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({\'gtm.start\':
-new Date().getTime(),event:\'gtm.js\'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!=\'dataLayer\'?\'&l=\'+l:\'\';j.async=true;j.src=
-\'//www.googletagmanager.com/gtm.js?id=\'+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,\'script\',\''. $variables['data_layer'] .'\',\''. $variables['id'] .'\');</script>
-<!-- End Google Tag Manager -->';
+    // Build script tags.
+    $noscript = <<<EOS
+<noscript><iframe src="//www.googletagmanager.com/ns.html?id={$variables['id']}"
+ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+EOS;
+    $script = <<<EOS
+<script type="text/javascript">
+(function(w,d,s,l,i){
+
+  w[l]=w[l]||[];
+  w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
+  var f=d.getElementsByTagName(s)[0];
+  var j=d.createElement(s);
+  var dl=l!='dataLayer'?'&l='+l:'';
+  j.src='//www.googletagmanager.com/gtm.js?id='+i+dl;
+  j.type='text/javascript';
+  j.async=true;
+  f.parentNode.insertBefore(j,f);
+
+})(window,document,'script','{$variables['data_layer']}','{$variables['id']}');
+</script>
+EOS;
+    $script = <<<EOS
+<!-- Google Tag Manager -->
+$layers
+$noscript
+$script
+<!-- End Google Tag Manager -->
+EOS;
+    return $script;
   }
   return FALSE;
 }
