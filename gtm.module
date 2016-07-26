@@ -6,10 +6,15 @@
  */
 
 /**
- * Implements hook_perm().
+ * Implements hook_permission().
  */
-function gtm_perm() {
-  return array('administer google tag manager');
+function gtm_permission() {
+  return array(
+    'administer google tag manager' => array(
+      'title' => t('Administer Google Tag Manager'),
+      'description' => 'Configure Google Tag Manager.'
+    ),
+  );
 }
 
 /**
