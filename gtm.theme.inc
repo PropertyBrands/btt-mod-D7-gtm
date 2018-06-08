@@ -34,6 +34,32 @@ EOS;
 })(window,document,'script','{$variables['data_layer']}','{$variables['id']}');
 </script>
 EOS;
+  // Custom script that only enabled tag manager if cookie tracking is allowed
+  // @see https://github.com/bluetent/mod-btm_cookie_compliance#disableenable-setting-cookies
+  $script_cookie_compliance = <<<EOS
+<script type="text/javascript">
+(function(w,d,s,l,i,$){
+  $(d).on('cookieset', function (e, allowCookies, mode) {
+    // Determine if cookie can be set or not
+    if (allowCookies) {
+      w[l]=w[l]||[];
+      w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
+      var f=d.getElementsByTagName(s)[0];
+      var j=d.createElement(s);
+      var dl=l!='dataLayer'?'&l='+l:'';
+      j.src='//www.googletagmanager.com/gtm.js?id='+i+dl;
+      j.type='text/javascript';
+      j.async=true;
+      f.parentNode.insertBefore(j,f);
+      console.log('gtm added');
+    }
+  });
+})(window,document,'script','{$variables['data_layer']}','{$variables['id']}', jQuery, Drupal);
+</script>
+EOS;
+if (module_exists('btm_cookie_compliance') && variable_get('btm_cookie_compliance_enable', 0)) {
+  $script = $script_cookie_compliance;
+}
     $script = <<<EOS
 <!-- Google Tag Manager -->
 $init
