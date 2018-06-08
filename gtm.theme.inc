@@ -51,7 +51,6 @@ EOS;
       j.type='text/javascript';
       j.async=true;
       f.parentNode.insertBefore(j,f);
-      console.log('gtm added');
     }
   });
 })(window,document,'script','{$variables['data_layer']}','{$variables['id']}', jQuery, Drupal);
