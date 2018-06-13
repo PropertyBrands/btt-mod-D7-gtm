@@ -68,7 +68,7 @@ EOS;
 })(window,document,'script','{$variables['data_layer']}','{$variables['id']}', jQuery, Drupal);
 </script>
 EOS;
-if (module_exists('btm_cookie_compliance') && variable_get('btm_cookie_compliance_enable', 0)) {
+if ($variables['btm_cookie_compliance_enable']) {
   $script = $script_cookie_compliance;
 }
     $script = <<<EOS
@@ -92,6 +92,7 @@ function gtm_preprocess_gtm_container(&$variables) {
     $variables['track'] = TRUE;
     $variables['id'] = variable_get('gtm');
     $variables['data_layer'] = variable_get('datalayer', 'dataLayer');
+    $variables['btm_cookie_compliance_enable'] = variable_get('btm_cookie_compliance_enable', 0);
   }
 }
 
