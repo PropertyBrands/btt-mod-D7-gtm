@@ -39,24 +39,36 @@ EOS;
   $script_cookie_compliance = <<<EOS
 <script type="text/javascript">
 (function(w,d,s,l,i,$){
-  $(d).on('cookieset', function (e, allowCookies, mode) {
-    // Determine if cookie can be set or not
-    if (allowCookies) {
-      w[l]=w[l]||[];
-      w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
-      var f=d.getElementsByTagName(s)[0];
-      var j=d.createElement(s);
-      var dl=l!='dataLayer'?'&l='+l:'';
-      j.src='//www.googletagmanager.com/gtm.js?id='+i+dl;
-      j.type='text/javascript';
-      j.async=true;
-      f.parentNode.insertBefore(j,f);
-    }
-  });
+  if (allowCookies()) {
+    w[l]=w[l]||[];
+    w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
+    var f=d.getElementsByTagName(s)[0];
+    var j=d.createElement(s);
+    var dl=l!='dataLayer'?'&l='+l:'';
+    j.src='//www.googletagmanager.com/gtm.js?id='+i+dl;
+    j.type='text/javascript';
+    j.async=true;
+    f.parentNode.insertBefore(j,f);
+  } else {
+    $(d).on('cookieset', function (e, allowCookies, mode) {
+      // Determine if cookie can be set or not
+      if (allowCookies) {
+        w[l]=w[l]||[];
+        w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
+        var f=d.getElementsByTagName(s)[0];
+        var j=d.createElement(s);
+        var dl=l!='dataLayer'?'&l='+l:'';
+        j.src='//www.googletagmanager.com/gtm.js?id='+i+dl;
+        j.type='text/javascript';
+        j.async=true;
+        f.parentNode.insertBefore(j,f);
+      }
+    });
+  }
 })(window,document,'script','{$variables['data_layer']}','{$variables['id']}', jQuery, Drupal);
 </script>
 EOS;
-if (module_exists('btm_cookie_compliance') && variable_get('btm_cookie_compliance_enable', 0)) {
+if ($variables['btm_cookie_compliance_enable']) {
   $script = $script_cookie_compliance;
 }
     $script = <<<EOS
@@ -80,6 +92,7 @@ function gtm_preprocess_gtm_container(&$variables) {
     $variables['track'] = TRUE;
     $variables['id'] = variable_get('gtm');
     $variables['data_layer'] = variable_get('datalayer', 'dataLayer');
+    $variables['btm_cookie_compliance_enable'] = variable_get('btm_cookie_compliance_enable', 0);
   }
 }
 
