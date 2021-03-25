@@ -156,6 +156,21 @@ function gtm_gtm_data_layer() {
  return FALSE;
 }
 
+/**
+ * Implements hook_bt_optimize_third_party_scripts_alter().
+ * Here we can add any third party scripts to our BT Optimize loader.
+ */
+function gtm_bt_optimize_third_party_scripts_alter(&$third_party_scripts) {
+  if($plugin = context_get_plugin('reaction', 'gtm_container')) {
+    $id = variable_get('gtm', NULL);
+    $third_party_scripts['GoogleTagManager'] = [
+      'src' => drupal_get_path('module', 'btm_ntwi') . '/js/navis-fusion-loader.js', //$protocol . 'assets.navisperformance.com/NWRC/Fusion/navis-fusion-loader.js',
+      'id' => 'navis-fusion-loader',
+      'data-accountid' => variable_get('ntwi_account_number', ''),
+      'data-secret' =>  variable_get('ntwi_js_pass', ''),
+    ];
+  }
+}
 
 /**
  * Implements callback_post_render().
@@ -167,7 +182,7 @@ function gtm_gtm_data_layer() {
  */
 function gtm_page_process(&$children, $elements) {
   // Insert snippet after the opening body tag.
-  if($plugin = context_get_plugin('reaction', 'gtm_container')) {
+  if(!module_exists('bt_optimize') && $plugin = context_get_plugin('reaction', 'gtm_container')) {
     $script = $plugin->execute();
     $children = preg_replace('@<body[^>]*>@', '$0' . $script, $children, 1);
   }
