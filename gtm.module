@@ -137,12 +137,28 @@ function gtm_should_track() {
       $track[] = variable_get('gtm_track_' . $role, FALSE) ? TRUE : FALSE;
     }
   }
+
+  // Flag to define if track must be done or not.
+  $should_track = false;
+
   // Don't track page views in the admin sections, or for certain roles.
   // Check if we should track the currently active user's role.
   if(in_array(TRUE, $track) && arg(0) != 'admin' && !is_null($id)) {
-    return TRUE;
+    $should_track = true;
   }
-  return FALSE;
+
+  // Allow third party modules to determine if tracking must or must not occur.
+  $context = [
+    'user' => $user,
+    'id' => $id,
+    'track' => $track,
+  ];
+  drupal_alter('gtm_should_track', $should_track, $context);
+
+  // Ensure it's a boolean value what is handled after all.
+  $should_track = boolval($should_track);
+
+  return $should_track;
 }
 
 /**
