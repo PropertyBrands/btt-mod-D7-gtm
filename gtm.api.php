@@ -9,5 +9,5 @@
  * Alters the track status of a page.
  */
 function hook_gtm_should_track_alter(&$should_track, $context) {
-  // Change $should_track based on passed $context.
+  // Change $should_track based on passed $context and/or extra info.
 }
