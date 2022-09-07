@@ -29,7 +29,7 @@ EOS;
   var dl=l!='dataLayer'?'&l='+l:'';
   j.src='//www.googletagmanager.com/gtm.js?id='+i+dl;
   j.type='text/javascript';
-  j.async=true;
+  j.defer=true;
   f.parentNode.insertBefore(j,f);
 })(window,document,'script','{$variables['data_layer']}','{$variables['id']}');
 </script>
@@ -60,7 +60,7 @@ EOS;
         var dl=l!='dataLayer'?'&l='+l:'';
         j.src='//www.googletagmanager.com/gtm.js?id='+i+dl;
         j.type='text/javascript';
-        j.async=true;
+        j.defer=true;
         f.parentNode.insertBefore(j,f);
       }
     });
