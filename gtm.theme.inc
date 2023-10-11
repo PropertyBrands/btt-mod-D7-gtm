@@ -28,7 +28,7 @@ var gtmCheckAllInPlace = setInterval(function() {
   }
 
   // Done with the checking.
-  clearInterval(gtmCheckjQuery);
+  clearInterval(gtmCheckAllInPlace);
 
   // Self calling function.
   (function(w,d,s,l,i,$,Drupal){
@@ -64,7 +64,7 @@ var gtmCheckAllInPlace = setInterval(function() {
   }
 
   // Done with the checking.
-  clearInterval(gtmCheckjQuery);
+  clearInterval(gtmCheckAllInPlace);
 
   // Self calling function.
   (function(w,d,s,l,i,$,Drupal) {
