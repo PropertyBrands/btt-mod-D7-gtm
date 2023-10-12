@@ -109,39 +109,69 @@ var gtmCheckAllInPlace = setInterval(function() {
 
   // Self calling function.
   (function(w,d,s,l,i,$,Drupal) {
+    // Detect user interactions.
+    $('body').once(function() {
+      if (gtmUserInteracted) {
+        return;
+      }
+
+      $('body').mousemove(function() {
+        gtmUserInteracted = true;
+      });
+
+      $('body').bind('touchmove', function() {
+        gtmUserInteracted = true;
+      });
+
+      $('body').keydown(function(e) {
+        if ((e.keyCode == 9) || (e.keyCode == 13)) {
+          gtmUserInteracted = true;
+        }
+      });
+    });
 
     // Run when page is ready, by using jQuery.
     $(function() {
-
-      // Give it a time before running the code.
-      setTimeout(function() {
-        if (allowCookies()) {
-          w[l]=w[l]||[];
-          w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
-          var f=d.getElementsByTagName(s)[0];
-          var j=d.createElement(s);
-          var dl=l!='dataLayer'?'&l='+l:'';
-          j.src='//www.googletagmanager.com/gtm.js?id='+i+dl;
-          j.type='text/javascript';
-          j.async=true;
-          f.parentNode.insertBefore(j,f);
-        } else {
-          $(d).on('cookieset', function (e, allowCookies, mode) {
-            // Determine if cookie can be set or not
-            if (allowCookies) {
-              w[l]=w[l]||[];
-              w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
-              var f=d.getElementsByTagName(s)[0];
-              var j=d.createElement(s);
-              var dl=l!='dataLayer'?'&l='+l:'';
-              j.src='//www.googletagmanager.com/gtm.js?id='+i+dl;
-              j.type='text/javascript';
-              j.async=true;
-              f.parentNode.insertBefore(j,f);
-            }
-          });
+      // Wait on user interaction.
+      let gtmCheckingUserInteraction = setInterval(function() {
+        // No interaction, keep waiting.
+        if (!gtmUserInteracted) {
+          return;
         }
-      }, {$gtm_load_delay});
+
+        // Interaction detected.
+        clearInterval(gtmCheckingUserInteraction);
+
+        // Give it a time before running the code.
+        setTimeout(function() {
+          if (allowCookies()) {
+            w[l]=w[l]||[];
+            w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
+            var f=d.getElementsByTagName(s)[0];
+            var j=d.createElement(s);
+            var dl=l!='dataLayer'?'&l='+l:'';
+            j.src='//www.googletagmanager.com/gtm.js?id='+i+dl;
+            j.type='text/javascript';
+            j.async=true;
+            f.parentNode.insertBefore(j,f);
+          } else {
+            $(d).on('cookieset', function (e, allowCookies, mode) {
+              // Determine if cookie can be set or not
+              if (allowCookies) {
+                w[l]=w[l]||[];
+                w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
+                var f=d.getElementsByTagName(s)[0];
+                var j=d.createElement(s);
+                var dl=l!='dataLayer'?'&l='+l:'';
+                j.src='//www.googletagmanager.com/gtm.js?id='+i+dl;
+                j.type='text/javascript';
+                j.async=true;
+                f.parentNode.insertBefore(j,f);
+              }
+            });
+          }
+        }, {$gtm_load_delay});
+      }, 250);
     });
   })(window,document,'script','{$variables['data_layer']}','{$variables['id']}',jQuery,Drupal);
 }, 500);
