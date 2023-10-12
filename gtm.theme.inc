@@ -19,8 +19,16 @@ function theme_gtm_container(&$variables) {
 <noscript><iframe src="//www.googletagmanager.com/ns.html?id={$variables['id']}"
  height="0" width="0" style="display:none;visibility:hidden" loading="lazy"></iframe></noscript>
 EOS;
+
+    // Get GTM loading vars.
+    $gtm_load_delay = $variables['gtm_load_delay'];
+    $gtm_load_on_user_interaction = $variables['gtm_load_on_user_interaction'];
+
     $script = <<<EOS
 <script type="text/javascript">
+// Track user interaction.
+var gtmUserInteracted = !{$gtm_load_on_user_interaction};
+
 // Keep looping until js objects are available.
 var gtmCheckAllInPlace = setInterval(function() {
   if (typeof jQuery === 'undefined') {
@@ -30,24 +38,55 @@ var gtmCheckAllInPlace = setInterval(function() {
   // Done with the checking.
   clearInterval(gtmCheckAllInPlace);
 
+  // Detect user interactions.
+  $('body').once(function() {
+    if (gtmUserInteracted) {
+      return;
+    }
+
+    $('body').mousemove(function() {
+      gtmUserInteracted = true;
+    });
+    
+    $('body').bind('touchmove', function() {
+      gtmUserInteracted = true;
+    });
+    
+    $('body').keydown(function(e) {
+      if ((e.keyCode == 9) || (e.keyCode == 13)) {
+        gtmUserInteracted = true;
+      }
+    });
+  });
+ 
   // Self calling function.
   (function(w,d,s,l,i,$,Drupal){
 
     // Run when page is ready, by using jQuery.
     $(function() {
+      // Wait on user interaction.
+      let gtmCheckingUserInteraction = setInterval(function() {
+        // No interaction, keep waiting.
+        if (!gtmUserInteracted) {
+          return;
+        }
 
-      // Give it a time before running the code.
-      setTimeout(function() {
-        w[l]=w[l]||[];
-        w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
-        var f=d.getElementsByTagName(s)[0];
-        var j=d.createElement(s);
-        var dl=l!='dataLayer'?'&l='+l:'';
-        j.src='//www.googletagmanager.com/gtm.js?id='+i+dl;
-        j.type='text/javascript';
-        j.async=true;
-        f.parentNode.insertBefore(j,f);
-      }, 2000);
+        // Interaction detected.
+        clearInterval(gtmCheckingUserInteraction);
+
+        // Give it a time before running the code.
+        setTimeout(function() {
+          w[l]=w[l]||[];
+          w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
+          var f=d.getElementsByTagName(s)[0];
+          var j=d.createElement(s);
+          var dl=l!='dataLayer'?'&l='+l:'';
+          j.src='//www.googletagmanager.com/gtm.js?id='+i+dl;
+          j.type='text/javascript';
+          j.async=true;
+          f.parentNode.insertBefore(j,f);
+        }, {$gtm_load_delay});
+      }, 250);
     });
   })(window,document,'script','{$variables['data_layer']}','{$variables['id']}',jQuery,Drupal);
 }, 500);
@@ -57,6 +96,9 @@ EOS;
   // @see https://github.com/bluetent/mod-btm_cookie_compliance#disableenable-setting-cookies
   $script_cookie_compliance = <<<EOS
 <script type="text/javascript">
+// Track user interaction.
+var gtmUserInteracted = !{$gtm_load_on_user_interaction};
+
 // Keep looping until js objects are available.
 var gtmCheckAllInPlace = setInterval(function() {
   if (typeof jQuery === 'undefined') {
@@ -100,7 +142,7 @@ var gtmCheckAllInPlace = setInterval(function() {
             }
           });
         }
-      }, 2000);
+      }, {$gtm_load_delay});
     });
   })(window,document,'script','{$variables['data_layer']}','{$variables['id']}',jQuery,Drupal);
 }, 500);
@@ -131,6 +173,8 @@ function gtm_preprocess_gtm_container(&$variables) {
     $variables['id'] = variable_get('gtm');
     $variables['data_layer'] = variable_get('datalayer', 'dataLayer');
     $variables['btm_cookie_compliance_enable'] = variable_get('btm_cookie_compliance_enable', 0);
+    $variables['gtm_load_delay'] = variable_get('gtm_load_delay', 0);
+    $variables['gtm_load_on_user_interaction'] = variable_get('gtm_load_on_user_interaction', 0);
   }
 }
 

@@ -60,5 +60,28 @@ function gtm_admin_settings_form($form) {
     );
   }
 
+  $form['gtm_load_delay'] = [
+    '#type' => 'textfield',
+    // Hack to use numbers only
+    // @see https://drupal.stackexchange.com/a/228250
+    '#attributes' => [
+      ' type' => 'number',
+    ],
+    '#title' => t('Load delay'),
+    '#default_value' => variable_get('gtm_load_delay', 0),
+    '#description' => t('Indicates the amount of miliseconds GTM lib must wait to be loaded. Useful to reduce the impact in page speed tests as GTM script loading and its referenced scripts in a site, can take some time, and that impacts scores.'),
+    '#required' => false,
+    '#size' => 20,
+  ];
+
+  $form['gtm_load_on_user_interaction'] = [
+    '#type' => 'checkbox',
+    '#title' => t('Load on user interaction'),
+    '#default_value' => variable_get('gtm_load_on_user_interaction', 0),
+    '#description' => t('Indicates if GTM must be loaded after detected user interaction.'),
+    '#required' => false,
+    '#size' => 20,
+  ];
+
   return system_settings_form($form);
 }
