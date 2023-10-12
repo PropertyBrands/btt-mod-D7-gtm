@@ -38,29 +38,28 @@ var gtmCheckAllInPlace = setInterval(function() {
   // Done with the checking.
   clearInterval(gtmCheckAllInPlace);
 
-  // Detect user interactions.
-  $('body').once(function() {
-    if (gtmUserInteracted) {
-      return;
-    }
-
-    $('body').mousemove(function() {
-      gtmUserInteracted = true;
-    });
-    
-    $('body').bind('touchmove', function() {
-      gtmUserInteracted = true;
-    });
-    
-    $('body').keydown(function(e) {
-      if ((e.keyCode == 9) || (e.keyCode == 13)) {
-        gtmUserInteracted = true;
-      }
-    });
-  });
- 
   // Self calling function.
   (function(w,d,s,l,i,$,Drupal){
+    // Detect user interactions.
+    $('body').once(function() {
+      if (gtmUserInteracted) {
+        return;
+      }
+  
+      $('body').mousemove(function() {
+        gtmUserInteracted = true;
+      });
+      
+      $('body').bind('touchmove', function() {
+        gtmUserInteracted = true;
+      });
+      
+      $('body').keydown(function(e) {
+        if ((e.keyCode == 9) || (e.keyCode == 13)) {
+          gtmUserInteracted = true;
+        }
+      });
+    });  
 
     // Run when page is ready, by using jQuery.
     $(function() {
