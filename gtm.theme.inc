@@ -49,6 +49,9 @@ function _gtm_add_gtm($id, $variables) {
     return '';
   }
 
+  // Build a suffix to use in js variables generated.
+  $suffix = '_' . md5($id) . '_' . rand();
+
   // Build script tags.
   $noscript = <<<EOS
 <noscript><iframe src="//www.googletagmanager.com/ns.html?id={$id}"
@@ -61,57 +64,126 @@ EOS;
 
   $script = <<<EOS
 <script type="text/javascript">
-  // Self callable function used to contain all variables here generated.
-  (function() {
-    // Track user interaction.
-    let gtmUserInteracted = !{$gtm_load_on_user_interaction};
+  // Track user interaction.
+  let gtmUserInteracted$suffix = !{$gtm_load_on_user_interaction};
 
-    // Keep looping until js objects are available.
-    let gtmCheckAllInPlace = setInterval(function() {
-      if (typeof jQuery === 'undefined') {
-        return;
-      }
+  // Keep looping until js objects are available.
+  let gtmCheckAllInPlace$suffix = setInterval(function() {
+    if (typeof jQuery === 'undefined') {
+      return;
+    }
 
-      // Done with the checking.
-      clearInterval(gtmCheckAllInPlace);
+    // Done with the checking.
+    clearInterval(gtmCheckAllInPlace$suffix);
 
-      // Self calling function.
-      (function(w,d,s,l,i,$,Drupal) {
-        // Detect user interactions.
-        $('body').once(function() {
-          if (gtmUserInteracted) {
+    // Self calling function.
+    (function(w,d,s,l,i,$,Drupal) {
+      // Detect user interactions.
+      $('body').once(function() {
+        if (gtmUserInteracted$suffix) {
+          return;
+        }
+
+        $('body').mousemove(function() {
+          gtmUserInteracted$suffix = true;
+        });
+
+        $('body').bind('touchmove', function() {
+          gtmUserInteracted$suffix = true;
+        });
+
+        $('body').keydown(function(e) {
+          if ((e.keyCode == 9) || (e.keyCode == 13)) {
+            gtmUserInteracted$suffix = true;
+          }
+        });
+      });
+
+      // Run when page is ready, by using jQuery.
+      $(function() {
+        // Wait on user interaction.
+        let gtmCheckingUserInteraction = setInterval(function() {
+          // No interaction, keep waiting.
+          if (!gtmUserInteracted$suffix) {
             return;
           }
-      
-          $('body').mousemove(function() {
-            gtmUserInteracted = true;
-          });
-          
-          $('body').bind('touchmove', function() {
-            gtmUserInteracted = true;
-          });
-          
-          $('body').keydown(function(e) {
-            if ((e.keyCode == 9) || (e.keyCode == 13)) {
-              gtmUserInteracted = true;
-            }
-          });
-        });  
 
-        // Run when page is ready, by using jQuery.
-        $(function() {
-          // Wait on user interaction.
-          let gtmCheckingUserInteraction = setInterval(function() {
-            // No interaction, keep waiting.
-            if (!gtmUserInteracted) {
-              return;
-            }
+          // Interaction detected.
+          clearInterval(gtmCheckingUserInteraction);
 
-            // Interaction detected.
-            clearInterval(gtmCheckingUserInteraction);
+          // Give it a time before running the code.
+          setTimeout(function() {
+            w[l]=w[l]||[];
+            w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
+            var f=d.getElementsByTagName(s)[0];
+            var j=d.createElement(s);
+            var dl=l!='dataLayer'?'&l='+l:'';
+            j.src='//www.googletagmanager.com/gtm.js?id='+i+dl;
+            j.type='text/javascript';
+            j.async=true;
+            f.parentNode.insertBefore(j,f);
+          }, {$gtm_load_delay});
+        }, 250);
+      });
+    })(window,document,'script','{$variables['data_layer']}','{$id}',jQuery,Drupal);
+  }, 500);
+</script>
+EOS;
 
-            // Give it a time before running the code.
-            setTimeout(function() {
+  // Custom script that only enabled tag manager if cookie tracking is allowed
+  // @see https://github.com/bluetent/mod-btm_cookie_compliance#disableenable-setting-cookies
+  $script_cookie_compliance = <<<EOS
+<script type="text/javascript">
+  // Track user interaction.
+  let gtmUserInteracted$suffix = !{$gtm_load_on_user_interaction};
+
+  // Keep looping until js objects are available.
+  let gtmCheckAllInPlace$suffix = setInterval(function() {
+    if (typeof jQuery === 'undefined') {
+      return;
+    }
+
+    // Done with the checking.
+    clearInterval(gtmCheckAllInPlace$suffix);
+
+    // Self calling function.
+    (function(w,d,s,l,i,$,Drupal) {
+      // Detect user interactions.
+      $('body').once(function() {
+        if (gtmUserInteracted$suffix) {
+          return;
+        }
+
+        $('body').mousemove(function() {
+          gtmUserInteracted$suffix = true;
+        });
+
+        $('body').bind('touchmove', function() {
+          gtmUserInteracted$suffix = true;
+        });
+
+        $('body').keydown(function(e) {
+          if ((e.keyCode == 9) || (e.keyCode == 13)) {
+            gtmUserInteracted$suffix = true;
+          }
+        });
+      });
+
+      // Run when page is ready, by using jQuery.
+      $(function() {
+        // Wait on user interaction.
+        let gtmCheckingUserInteraction = setInterval(function() {
+          // No interaction, keep waiting.
+          if (!gtmUserInteracted$suffix) {
+            return;
+          }
+
+          // Interaction detected.
+          clearInterval(gtmCheckingUserInteraction);
+
+          // Give it a time before running the code.
+          setTimeout(function() {
+            if (allowCookies()) {
               w[l]=w[l]||[];
               w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
               var f=d.getElementsByTagName(s)[0];
@@ -121,102 +193,27 @@ EOS;
               j.type='text/javascript';
               j.async=true;
               f.parentNode.insertBefore(j,f);
-            }, {$gtm_load_delay});
-          }, 250);
-        });
-      })(window,document,'script','{$variables['data_layer']}','{$id}',jQuery,Drupal);
-    }, 500);
-  })();
-</script>
-EOS;
-
-  // Custom script that only enabled tag manager if cookie tracking is allowed
-  // @see https://github.com/bluetent/mod-btm_cookie_compliance#disableenable-setting-cookies
-  $script_cookie_compliance = <<<EOS
-<script type="text/javascript">
-  // Self callable function used to contain all variables here generated.
-  (function() {
-    // Track user interaction.
-    let gtmUserInteracted = !{$gtm_load_on_user_interaction};
-
-    // Keep looping until js objects are available.
-    let gtmCheckAllInPlace = setInterval(function() {
-      if (typeof jQuery === 'undefined') {
-        return;
-      }
-
-      // Done with the checking.
-      clearInterval(gtmCheckAllInPlace);
-
-      // Self calling function.
-      (function(w,d,s,l,i,$,Drupal) {
-        // Detect user interactions.
-        $('body').once(function() {
-          if (gtmUserInteracted) {
-            return;
-          }
-
-          $('body').mousemove(function() {
-            gtmUserInteracted = true;
-          });
-
-          $('body').bind('touchmove', function() {
-            gtmUserInteracted = true;
-          });
-
-          $('body').keydown(function(e) {
-            if ((e.keyCode == 9) || (e.keyCode == 13)) {
-              gtmUserInteracted = true;
+            } else {
+              $(d).on('cookieset', function (e, allowCookies, mode) {
+                // Determine if cookie can be set or not
+                if (allowCookies) {
+                  w[l]=w[l]||[];
+                  w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
+                  var f=d.getElementsByTagName(s)[0];
+                  var j=d.createElement(s);
+                  var dl=l!='dataLayer'?'&l='+l:'';
+                  j.src='//www.googletagmanager.com/gtm.js?id='+i+dl;
+                  j.type='text/javascript';
+                  j.async=true;
+                  f.parentNode.insertBefore(j,f);
+                }
+              });
             }
-          });
-        });
-
-        // Run when page is ready, by using jQuery.
-        $(function() {
-          // Wait on user interaction.
-          let gtmCheckingUserInteraction = setInterval(function() {
-            // No interaction, keep waiting.
-            if (!gtmUserInteracted) {
-              return;
-            }
-
-            // Interaction detected.
-            clearInterval(gtmCheckingUserInteraction);
-
-            // Give it a time before running the code.
-            setTimeout(function() {
-              if (allowCookies()) {
-                w[l]=w[l]||[];
-                w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
-                var f=d.getElementsByTagName(s)[0];
-                var j=d.createElement(s);
-                var dl=l!='dataLayer'?'&l='+l:'';
-                j.src='//www.googletagmanager.com/gtm.js?id='+i+dl;
-                j.type='text/javascript';
-                j.async=true;
-                f.parentNode.insertBefore(j,f);
-              } else {
-                $(d).on('cookieset', function (e, allowCookies, mode) {
-                  // Determine if cookie can be set or not
-                  if (allowCookies) {
-                    w[l]=w[l]||[];
-                    w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
-                    var f=d.getElementsByTagName(s)[0];
-                    var j=d.createElement(s);
-                    var dl=l!='dataLayer'?'&l='+l:'';
-                    j.src='//www.googletagmanager.com/gtm.js?id='+i+dl;
-                    j.type='text/javascript';
-                    j.async=true;
-                    f.parentNode.insertBefore(j,f);
-                  }
-                });
-              }
-            }, {$gtm_load_delay});
-          }, 250);
-        });
-      })(window,document,'script','{$variables['data_layer']}','{$id}',jQuery,Drupal);
-    }, 500);
-  })();
+          }, {$gtm_load_delay});
+        }, 250);
+      });
+    })(window,document,'script','{$variables['data_layer']}','{$id}',jQuery,Drupal);
+  }, 500);
 </script>
 EOS;
 
