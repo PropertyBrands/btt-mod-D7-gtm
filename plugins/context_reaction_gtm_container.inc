@@ -22,7 +22,8 @@ class context_reaction_gtm_container extends context_reaction {
       if (!empty($v->reactions[$this->plugin]['gtm_container'])) {
         $build = array(
           '#theme' => 'gtm_container',
-          '#gtm_id' => variable_get('gtm')
+          '#gtm_id' => variable_get('gtm'),
+          '#gtm_id_extra' => variable_get('gtm_extra'),
         );
         return drupal_render($build);
       }

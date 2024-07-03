@@ -35,6 +35,31 @@ function gtm_admin_settings_form($form) {
     ),
   );
 
+  $form['gtm_extra'] = [
+    '#type' => 'textfield',
+    '#title' => t('Extra Google Tag Manager ID'),
+    '#default_value' => variable_get('gtm_extra', ''),
+    '#attributes' => [
+      'placeholder' => 'GTM-XXXX'
+    ],
+    '#size' => 10,
+    '#required' => false,
+    '#suffix' => t(
+      '<small>If you do not already have a Google Tag Manager Account, create here one: !link</small>',
+      [
+        '!link' => l(
+          t('Google Tag Manager'),
+          'https://www.google.com/tagmanager',
+          [
+            'attributes' => [
+              'target' => '_blank',
+            ],
+          ]
+        ),
+      ]
+    ),
+  ];
+
   $form['datalayer'] = array(
     '#prefix' => '<br /><br />',
     '#type' => 'textfield',
