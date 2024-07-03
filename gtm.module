@@ -41,7 +41,7 @@ function gtm_menu() {
 function gtm_theme() {
   return array(
     'gtm_container' => array(
-      'variables' => array('gtm_id' => NULL),
+      'variables' => array('gtm_id' => NULL, 'gtm_id_extra' => NULL),
       'file' => 'gtm.theme.inc'
     ),
     'gtm_datalayer' => array(
@@ -129,6 +129,7 @@ function gtm_context_registry() {
 function gtm_should_track() {
   global $user;
   $id = variable_get('gtm', NULL);
+  $id_extra = variable_get('gtm_extra', NULL);
   $track = array();
 
   if (is_array($user->roles)) {
@@ -143,7 +144,7 @@ function gtm_should_track() {
 
   // Don't track page views in the admin sections, or for certain roles.
   // Check if we should track the currently active user's role.
-  if(in_array(TRUE, $track) && arg(0) != 'admin' && !is_null($id)) {
+  if(in_array(TRUE, $track) && arg(0) != 'admin' && (!is_null($id) || !is_null($id_extra))) {
     $should_track = true;
   }
 
@@ -151,6 +152,7 @@ function gtm_should_track() {
   $context = [
     'user' => $user,
     'id' => $id,
+    'id_extra' => $id_extra,
     'track' => $track,
   ];
   drupal_alter('gtm_should_track', $should_track, $context);
