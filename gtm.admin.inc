@@ -108,5 +108,18 @@ function gtm_admin_settings_form($form) {
     '#size' => 20,
   ];
 
+  $form['gtm_script_placement'] = [
+    '#type' => 'select',
+    '#title' => t('GTM script placement'),
+    '#options' => [
+      'body' => 'body tag (default)',
+      'head' => 'head tag',
+    ],
+    '#default_value' => variable_get('gtm_script_placement', 'body'),
+    '#description' => t('Indicates where to place the GTM script.'),
+    '#required' => false,
+    '#size' => 21,
+  ];
+
   return system_settings_form($form);
 }

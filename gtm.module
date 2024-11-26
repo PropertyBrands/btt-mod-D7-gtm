@@ -186,8 +186,18 @@ function gtm_gtm_data_layer() {
 function gtm_page_process(&$children, $elements) {
   // Insert snippet after the opening body tag.
   if($plugin = context_get_plugin('reaction', 'gtm_container')) {
+    // Get the script to load.
     $script = $plugin->execute();
-    $children = preg_replace('@<body[^>]*>@', '$0' . $script, $children, 1);
+
+    // Get the place where to load the script.
+    $placement = variable_get('gtm_script_placement', 'body');
+
+    // Load the script.
+    if ($placement == 'head') {
+      $children = preg_replace('@</head>@', $script . '$0', $children, 1);
+    } else {
+      $children = preg_replace('@<body[^>]*>@', '$0' . $script, $children, 1);
+    }
   }
   return $children;
 }
